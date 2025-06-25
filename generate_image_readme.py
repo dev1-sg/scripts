@@ -1,16 +1,34 @@
 #!/usr/bin/env python3
 
-import glob
 import os
+import boto3
+import glob
 import docker
 from datetime import datetime
 from jinja2 import Template
+from dotenv import load_dotenv
 
-AWS_ECR_PUBLIC_ALIAS = "dev1-sg"
-AWS_ECR_PUBLIC_REGION = "us-east-1"
-AWS_ECR_PUBLIC_REPOSITORY_GROUP = "base"
-README_TEMPLATE_PATH = "./templates/image_readme.j2"
-SRC_PATH = "./src"
+load_dotenv(override=False)
+
+def get_env(key, default=None):
+    return os.getenv(key, default)
+
+AWS_ECR_PUBLIC_ALIAS = get_env("AWS_ECR_PUBLIC_ALIAS", "dev1-sg")
+AWS_ECR_PUBLIC_REGION = get_env("AWS_ECR_PUBLIC_REGION", "us-east-1")
+AWS_ECR_PUBLIC_REPOSITORY_GROUP = get_env("AWS_ECR_PUBLIC_REPOSITORY_GROUP", "base")
+README_TEMPLATE_PATH = get_env("README_TEMPLATE_PATH", "./templates/image_readme.j2")
+SRC_PATH = get_env("SRC_PATH", "./src")
+
+def login_to_ecr_public(region_name="us-east-1"):
+    ecr = boto3.client("ecr-public", region_name=region_name)
+    password = ecr.get_authorization_token()["authorizationData"]["authorizationToken"]
+    client = docker.from_env()
+    login_response = client.login(
+        username="AWS",
+        password=password,
+        registry="public.ecr.aws"
+    )
+    print("[INFO] Logged in to ECR Public:", login_response)
 
 def pull_image(client, image_name):
     print(f"[DEBUG] Pulling image: {image_name}")
@@ -67,6 +85,8 @@ def get_pkgs(client, image, arch):
 def main():
     client = docker.from_env()
     updated_time = datetime.now().astimezone().strftime("%c")
+
+    login_to_ecr_public()
 
     for dir_path in glob.glob(f"{SRC_PATH}/*/"):
         image_name = os.path.basename(os.path.normpath(dir_path))

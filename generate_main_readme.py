@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 
+import os
 import boto3
-from botocore.config import Config
 from datetime import datetime
 from jinja2 import Template
+from botocore.config import Config
+from dotenv import load_dotenv
 
-AWS_ECR_PUBLIC_ALIAS = "dev1-sg"
-AWS_ECR_PUBLIC_REGION = "us-east-1"
+load_dotenv(override=False)
+
+def get_env(key, default=None):
+    return os.getenv(key, default)
+
+AWS_ECR_PUBLIC_ALIAS = get_env("AWS_ECR_PUBLIC_ALIAS", "dev1-sg")
+AWS_ECR_PUBLIC_REGION = get_env("AWS_ECR_PUBLIC_REGION", "us-east-1")
 AWS_ECR_PUBLIC_URI = f"public.ecr.aws/{AWS_ECR_PUBLIC_ALIAS}"
 AWS_ECR_PUBLIC_URL = f"https://ecr-public.{AWS_ECR_PUBLIC_REGION}.amazonaws.com"
-AWS_ECR_PUBLIC_REPOSITORY_GROUP = "base"
+AWS_ECR_PUBLIC_REPOSITORY_GROUP = get_env("AWS_ECR_PUBLIC_REPOSITORY_GROUP", "base")
 
-README_TEMPLATE_PATH = "./templates/readme.j2"
-README_OUTPUT_PATH = "./readme.md"
+README_TEMPLATE_PATH = get_env("README_TEMPLATE_PATH", "./templates/readme.j2")
+README_OUTPUT_PATH = get_env("README_OUTPUT_PATH", "./readme.md")
 
 def load_template(path):
     print(f"[DEBUG] Loading template from: {path}")
