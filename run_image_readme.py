@@ -4,6 +4,7 @@ import sys
 import os
 import boto3
 import docker
+import base64
 from datetime import datetime
 from jinja2 import Template
 from dotenv import load_dotenv
@@ -25,10 +26,13 @@ updated_time = now.strftime("%c"), now.tzname()
 
 def login_to_ecr_public(region_name="us-east-1"):
     ecr = boto3.client("ecr-public", region_name=region_name)
-    password = ecr.get_authorization_token()["authorizationData"]["authorizationToken"]
+    token = ecr.get_authorization_token()["authorizationData"]["authorizationToken"]
+    decoded = base64.b64decode(token).decode()
+    username, password = decoded.split(":", 1)
+
     client = docker.from_env()
     login_response = client.login(
-        username="AWS",
+        username=username,
         password=password,
         registry="public.ecr.aws"
     )
