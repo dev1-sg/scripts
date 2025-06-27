@@ -12,11 +12,11 @@ load_dotenv(override=False)
 def get_env(key, default=None):
     return os.getenv(key, default)
 
-AWS_ECR_PUBLIC_ALIAS = get_env("AWS_ECR_PUBLIC_ALIAS", "dev1-sg")
+AWS_ECR_PUBLIC_ALIAS = get_env("AWS_ECR_PUBLIC_ALIAS")
 AWS_ECR_PUBLIC_REGION = get_env("AWS_ECR_PUBLIC_REGION", "us-east-1")
 AWS_ECR_PUBLIC_URI = f"public.ecr.aws/{AWS_ECR_PUBLIC_ALIAS}"
 AWS_ECR_PUBLIC_URL = f"https://ecr-public.{AWS_ECR_PUBLIC_REGION}.amazonaws.com"
-AWS_ECR_PUBLIC_REPOSITORY_GROUP = get_env("AWS_ECR_PUBLIC_REPOSITORY_GROUP", "base")
+AWS_ECR_PUBLIC_REPOSITORY_GROUP = get_env("AWS_ECR_PUBLIC_REPOSITORY_GROUP")
 
 README_TEMPLATE_PATH = get_env("README_TEMPLATE_PATH", "./templates/readme.j2")
 README_OUTPUT_PATH = get_env("README_OUTPUT_PATH", "./readme.md")

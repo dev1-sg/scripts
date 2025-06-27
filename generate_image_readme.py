@@ -14,9 +14,9 @@ load_dotenv(override=False)
 def get_env(key, default=None):
     return os.getenv(key, default)
 
-AWS_ECR_PUBLIC_ALIAS = get_env("AWS_ECR_PUBLIC_ALIAS", "dev1-sg")
+AWS_ECR_PUBLIC_ALIAS = get_env("AWS_ECR_PUBLIC_ALIAS")
 AWS_ECR_PUBLIC_REGION = get_env("AWS_ECR_PUBLIC_REGION", "us-east-1")
-AWS_ECR_PUBLIC_REPOSITORY_GROUP = get_env("AWS_ECR_PUBLIC_REPOSITORY_GROUP", "base")
+AWS_ECR_PUBLIC_REPOSITORY_GROUP = get_env("AWS_ECR_PUBLIC_REPOSITORY_GROUP")
 README_TEMPLATE_PATH = get_env("README_TEMPLATE_PATH", "./templates/image_readme.j2")
 SRC_PATH = get_env("SRC_PATH", "./src")
 
