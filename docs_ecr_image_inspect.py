@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import boto3
 import glob
@@ -8,6 +6,7 @@ import base64
 from datetime import datetime
 from jinja2 import Template
 from dotenv import load_dotenv
+import nbformat as nbf
 
 load_dotenv(override=False)
 
@@ -17,8 +16,10 @@ def get_env(key, default=None):
 AWS_ECR_PUBLIC_ALIAS = get_env("AWS_ECR_PUBLIC_ALIAS", "dev1-sg")
 AWS_ECR_PUBLIC_REGION = get_env("AWS_ECR_PUBLIC_REGION", "us-east-1")
 AWS_ECR_PUBLIC_REPOSITORY_GROUP = get_env("AWS_ECR_PUBLIC_REPOSITORY_GROUP", "base")
-README_TEMPLATE_PATH = get_env("README_TEMPLATE_PATH", "./templates/image_readme.j2")
-SRC_PATH = get_env("SRC_PATH", "./src")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+README_TEMPLATE_PATH = get_env("README_TEMPLATE_PATH", os.path.join(BASE_DIR, "../templates/ecr-image-inspect.j2"))
+SRC_PATH = get_env("SRC_PATH", os.path.join(BASE_DIR,"../src"))
 
 def login_to_ecr_public(region_name="us-east-1"):
     ecr = boto3.client("ecr-public", region_name=region_name)
@@ -95,7 +96,7 @@ def main():
     for dir_path in glob.glob(f"{SRC_PATH}/*/"):
         image_name = os.path.basename(os.path.normpath(dir_path))
         image_uri = f"public.ecr.aws/{AWS_ECR_PUBLIC_ALIAS}/{AWS_ECR_PUBLIC_REPOSITORY_GROUP}/{image_name}"
-        readme_path = os.path.join(dir_path, "readme.md")
+        notebook_path = os.path.join(dir_path, "readme.ipynb")
 
         print(f"[INFO] Processing image {image_name}")
 
@@ -110,7 +111,7 @@ def main():
             with open(README_TEMPLATE_PATH) as f:
                 template = Template(f.read(), trim_blocks=True, lstrip_blocks=True)
 
-            output = template.render(
+            markdown = template.render(
                 context={
                     "image": image_uri,
                     "arch": arch,
@@ -124,10 +125,13 @@ def main():
                 updated_at=updated_time,
             )
 
-            with open(readme_path, "w") as f:
-                f.write(output)
+            nb = nbf.v4.new_notebook()
+            nb.cells.append(nbf.v4.new_markdown_cell(markdown))
 
-            print(f"[INFO] Wrote readme for {image_name}")
+            with open(notebook_path, "w", encoding="utf-8") as f:
+                nbf.write(nb, f)
+
+            print(f"[INFO] Wrote notebook for {image_name}")
 
         except Exception as e:
             print(f"[ERROR] Failed processing {image_name}: {e}")

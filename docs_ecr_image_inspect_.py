@@ -6,6 +6,7 @@ import base64
 from datetime import datetime
 from jinja2 import Template
 from dotenv import load_dotenv
+import nbformat as nbf
 
 load_dotenv(override=False)
 
@@ -16,8 +17,9 @@ AWS_ECR_PUBLIC_ALIAS = get_env("AWS_ECR_PUBLIC_ALIAS", "dev1-sg")
 AWS_ECR_PUBLIC_REGION = get_env("AWS_ECR_PUBLIC_REGION", "us-east-1")
 AWS_ECR_PUBLIC_REPOSITORY_GROUP = get_env("AWS_ECR_PUBLIC_REPOSITORY_GROUP", "base")
 
-README_TEMPLATE_PATH = get_env("README_TEMPLATE_PATH", "./templates/image_readme.j2")
-SRC_PATH = get_env("SRC_PATH", "./src")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+README_TEMPLATE_PATH = get_env("README_TEMPLATE_PATH", os.path.join(BASE_DIR, "../templates/ecr-image-inspect.j2"))
+SRC_PATH = get_env("SRC_PATH", os.path.join(BASE_DIR,"../src"))
 
 now = datetime.now().astimezone()
 updated_time = now.strftime("%c"), now.tzname()
@@ -101,7 +103,7 @@ def run_command_with_fallback(client, image_name, arch):
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 run_image_readme.py <image_name>")
+        print("Usage: python3 run_image_notebook.py <image_name>")
         sys.exit(1)
 
     keyword = sys.argv[1]
@@ -115,7 +117,7 @@ def main():
 
     docker_image_name = keyword
     ecr_public_image_uri = f"public.ecr.aws/{AWS_ECR_PUBLIC_ALIAS}/{AWS_ECR_PUBLIC_REPOSITORY_GROUP}/{docker_image_name}:latest"
-    readme_output_path = os.path.join(target_dir, "readme.md")
+    notebook_output_path = os.path.join(target_dir, "readme.ipynb")
 
     login_to_ecr_public()
 
@@ -149,11 +151,14 @@ def main():
             "pkg_local": pkg_local,
         }
 
-        output = template.render(context=context, updated_at=updated_time)
+        markdown = template.render(context=context, updated_at=updated_time)
 
-        print(f"[INFO] Writing readme to: {readme_output_path}")
-        with open(readme_output_path, "w") as f:
-            f.write(output)
+        nb = nbf.v4.new_notebook()
+        nb.cells.append(nbf.v4.new_markdown_cell(markdown))
+
+        print(f"[INFO] Writing notebook to: {notebook_output_path}")
+        with open(notebook_output_path, "w", encoding="utf-8") as f:
+            nbf.write(nb, f)
 
     except Exception as e:
         print(f"[ERROR] Failed to process {docker_image_name}: {e}")
