@@ -117,7 +117,7 @@ def main():
 
     docker_image_name = keyword
     ecr_public_image_uri = f"public.ecr.aws/{AWS_ECR_PUBLIC_ALIAS}/{AWS_ECR_PUBLIC_REPOSITORY_GROUP}/{docker_image_name}:latest"
-    notebook_output_path = os.path.join(target_dir, "readme.ipynb")
+    notebook_output_path = os.path.join(target_dir, "inspect-image.ipynb")
 
     login_to_ecr_public()
 

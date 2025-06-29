@@ -96,7 +96,7 @@ def main():
     for dir_path in glob.glob(f"{SRC_PATH}/*/"):
         image_name = os.path.basename(os.path.normpath(dir_path))
         image_uri = f"public.ecr.aws/{AWS_ECR_PUBLIC_ALIAS}/{AWS_ECR_PUBLIC_REPOSITORY_GROUP}/{image_name}"
-        notebook_path = os.path.join(dir_path, "readme.ipynb")
+        notebook_path = os.path.join(dir_path, "inspect-image.ipynb")
 
         print(f"[INFO] Processing image {image_name}")
 
